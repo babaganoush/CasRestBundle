@@ -1,0 +1,28 @@
+parameters:
+#    main_cas_rest.example.class: Main\CasRestBundle\Example
+     main.cas.rest.service.class: Main\CasRestBundle\Controller\CasRestController
+     
+     main.cas.rest.user.authentication.failure.class: Main\CasRestBundle\Component\Authentication\Handler\AuthenticationFailureHandler
+     main.cas.rest.user.management.controller.class: Main\CasRestBundle\Controller\UserManagementController
+     
+     
+
+services:
+#    main_cas_rest.example:
+#        class: %main_cas_rest.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]
+
+
+     main.cas.rest.service:
+       class: %main.cas.rest.service.class%
+       arguments: [%cas_rest_url%, %cas_service_url%, %cas_cert%, %cas_local%, %source_dn%, %base_dn%, %service_url%]
+       
+       
+       
+     main.cas.rest.user.management.controller.service:
+       class: %main.cas.rest.user.management.controller.class%
+       arguments: ["@fos_user.user_manager", "@security.encoder_factory", "@security.context", %fos_user_firewall_name%]
+ 
+     main.cas.rest.user.authentication.failure.service:
+       class: %main.cas.rest.user.authentication.failure.class%
+       arguments: ["@main.cas.rest.service", "@router", "@main.cas.rest.user.management.controller.service"]
