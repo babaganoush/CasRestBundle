@@ -4,7 +4,7 @@ CasRestBundle
 Cas Rest Bundle allows you to authenticate against a CAS server via RESTFUL services. This bundle works with the awesome FosUserBundle.
 
 
- Authored by Saud Faisal
+ Authored by <a href="http://2levelsabove.com/author/saud/">Saud Faisal</a>
 
 
 Now go into your app/config.yml and do something as follows:
@@ -30,4 +30,6 @@ Future versions will allow you to customize this experience fully. I wrote this 
 
 
 This bundle is in middle of some cleanup and I will do my best to refactor it further. Also I will be adding tests in future. 
+
+Please see more at: <a href="http://2levelsabove.com/symfony-2-cas-rest-bundle-authenticate-against-cas-gracefully/">CasRestBundle</a> Home Page
 
