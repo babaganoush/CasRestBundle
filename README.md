@@ -1,7 +1,10 @@
 CasRestBundle
 =============
 
-Cas Rest Bundle allows you to authenticate against a CAS server via RESTFUL services. Authored by Saud Faisal
+Cas Rest Bundle allows you to authenticate against a CAS server via RESTFUL services. This bundle works with the awesome FosUserBundle.
+
+
+ Authored by Saud Faisal
 
 
 Now go into your app/config.yml and do something as follows:
@@ -18,6 +21,4 @@ main_cas_rest:
 
 Please nose that you will have to adjust the path for cas_cert as it is located on your machine. 
 
-
-
-This bundle is in middle of some cleanup and I will do my best to refactor it further. 
+This bundle is in middle of some cleanup and I will do my best to refactor it further. Also I will be adding tests in future. 

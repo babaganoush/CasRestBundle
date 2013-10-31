@@ -44,7 +44,7 @@ if ($this->cas->authenticate($username, $password, FALSE))
     
     // TODO refactor this better
     if ($user == false){
-        $rolesArr = array(1 => 'ROLE_INTERNAL_PRACTICE_USER');
+        $rolesArr = array(1 => 'YOUR_CUSTOM_ROLE');
         $user = $this->userManagement->registerUser($username, $email, $password, $rolesArr);
        
         if ($user == false){
