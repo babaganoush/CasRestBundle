@@ -7,6 +7,7 @@ Cas Rest Bundle allows you to authenticate against a CAS server via RESTFUL serv
 Now go into your app/config.yml and do something as follows:
 
 main_cas_rest:
+
     cas_rest_url: https://sso.myserver.com/cas/restapi/tickets
     cas_service_url: https://sso.myserver.com/cas/serviceValidate
     cas_cert: /usr/share/ca-certificates/extra/ca.crt
