@@ -21,4 +21,12 @@ main_cas_rest:
 
 Please nose that you will have to adjust the path for cas_cert as it is located on your machine. 
 
+Also note that as the bundle stands for now, it will first authenticate locally. In the event you are able to log on, everything is fine. 
+In the event that the authentication fails, it will then go to the CAS server, and create a local DB user on successful authentication and then log you in. 
+
+Future versions will allow you to customize this experience fully. I wrote this in a hurry so please bear with me 
+
+
+
 This bundle is in middle of some cleanup and I will do my best to refactor it further. Also I will be adding tests in future. 
+
