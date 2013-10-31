@@ -1,7 +1,7 @@
 CasRestBundle
 =============
 
-Cas Rest Bundle allows you to authenticate against a CAS server via RESTFUL services. This bundle works with the awesome FosUserBundle. The beauty of this bundle is that you do not have to see the nasty CAS login screen as everything you do is over web services thus resulting in a fully customizable experience.
+Cas Rest Bundle is a Symfony 2 bundle that allows you to authenticate against a CAS server via RESTFUL services. This bundle works with the awesome FosUserBundle. The beauty of this bundle is that you do not have to see the nasty CAS login screen as everything you do is over web services thus resulting in a fully customizable experience.
 
 
  Authored by <a href="http://2levelsabove.com/author/saud/">Saud Faisal</a>
