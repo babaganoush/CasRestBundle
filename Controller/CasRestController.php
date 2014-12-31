@@ -7,28 +7,28 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class CasRestController extends Controller
 {
-        protected $cas_rest_url; 
-	protected $cas_service_url;
-	protected $service_url;
-	protected $cas_cert;
-	protected $cas_local;
-	protected $source_dn;
-	protected $base_dn;
-	protected $error_message;
+	protected $casRestUrl;
+	protected $casServiceUrl;
+	protected $serviceUrl;
+	protected $casCert;
+	protected $casLocal;
+	protected $sourceDN;
+	protected $baseDN;
+	protected $errorMessage;
 
 	public function __construct($cas_rest_url, $cas_service_url, $cas_cert = FALSE, $cas_local = FALSE, $source_dn = FALSE, $base_dn = FALSE, $service_url = FALSE)
 	{
-		$this->cas_rest_url = $cas_rest_url;
-		$this->cas_service_url = $cas_service_url;
-		$this->service_url = $service_url;
-		$this->cas_cert = $cas_cert;
-		$this->cas_local = $cas_local;
-		$this->source_dn = $source_dn;
-		$this->base_dn = $base_dn;
+		$this->casRestUrl = $cas_rest_url;
+		$this->casServiceUrl = $cas_service_url;
+		$this->serviceUrl = $service_url;
+		$this->casCert = $cas_cert;
+		$this->casLocal = $cas_local;
+		$this->sourceDN = $source_dn;
+		$this->baseDN = $base_dn;
 
 		if($cas_local)//If $cas_local is set, set the $service_url
 		{
-		  $this->service_url = $cas_local;
+		  $this->serviceUrl = $cas_local;
 		}
 		elseif(!$cas_local && !$service_url)//else cas_local is not set and $service_url is not set.
 		{
@@ -37,15 +37,15 @@ class CasRestController extends Controller
 		  else
 		    $prefix = 'http://';
 
-		  $this->service_url = $prefix . $_SERVER['SERVER_NAME'];
+		  $this->serviceUrl = $prefix . $_SERVER['SERVER_NAME'];
 		}
 
-		$this->error_message = 'No error message has been set.';
+		$this->errorMessage = 'No error message has been set.';
 	}
 
 
 	/**
-	 * Helper function ito perform a curl post
+	 * Helper function to perform a curl post
 	 */
 	protected function curl($fields, $url)
 	{
@@ -74,13 +74,13 @@ class CasRestController extends Controller
 	 * @param unknown $cas_password cas password to use
 	 * @returns array containing TGT with key 'tgt'
 	 */
-	public function request_tgt($cas_username, $cas_password)
+	public function requestTGT($cas_username, $cas_password)
 	{
 		$fields = array('username' => $cas_username, 'password' => $cas_password);
-		$url = $this->get_cas_rest_url();
+		$url = $this->getCASRestUrl();
 
 		$output = $this->curl($fields, $url);
-		$tgt = $this->parse_output($output, '/TGT-?(.*)/');
+		$tgt = $this->parseOutput($output, '/TGT-?(.*)/');
 
 		if($tgt)
 			return $tgt;
@@ -91,12 +91,12 @@ class CasRestController extends Controller
 
 
 	/**
-	 * Performs a regex pattern match of the REST return.
-	 * @param unknown $output
-	 * @param unknown $pattern
+	 * Helper function to find a pattern from the ticket and the REST return.
+	 * @param string $output
+	 * @param string $pattern
 	 * @return string
 	 */
-	protected function parse_output($output, $pattern)
+	protected function parseOutput($output, $pattern)
 	{
 		$ticket = FALSE;
 		$value = FALSE;
@@ -113,14 +113,15 @@ class CasRestController extends Controller
 	/**
 	 * Using the TGT, get the service ticket.
 	 * Step 2 of CAS REST
-	 * @param unknown $tgt
+	 * @param string $tgt the TGT from step one
+	 * @return string a string service ticket.
 	 */
 	public function request_st($tgt)
 	{
-		$fields = array('service' => $this->get_service_url());
-		$url = $this->get_cas_rest_url();
+		$fields = array('service' => $this->getServiceUrl());
+		$url = $this->getCASRestUrl();
 		$output = $this->curl($fields, $url . '/' .$tgt);
-		$st = $this->parse_output($output, '/ST-?([0-9A-Za-z-.]*)/');
+		$st = $this->parseOutput($output, '/ST-?([0-9A-Za-z-.]*)/');
 
 		if($st)
 			return $st;
@@ -139,13 +140,13 @@ class CasRestController extends Controller
 	/**
 	 * Returns the XML response.
 	 * Step 3 of CAS REST
-	 * @param unknown $st service ticket from step 2
+	 * @param string $st service ticket from step 2
 	 * @return mixed string with full XML from CAS
 	 */
-	public function request_xml($st)
+	public function requestXML($st)
 	{
-		$service = urlencode($this->get_service_url());
-		$url = $this->get_cas_service_url();
+		$service = urlencode($this->getServiceUrl());
+		$url = $this->getCASServiceUrl();
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url . "?service=$service&ticket=$st");
@@ -162,13 +163,15 @@ class CasRestController extends Controller
 
 
 	/**
-	 * Helper function to set the cURL SSL settings.
+	 * Helper function to set the cURL SSL settings. This is used for for bypassing certificate
+	 * and SSL requirements for local testing. Not recommended, try to setup SSL on all environments
+	 * including local.
 	 * @param unknown $ch
 	 */
 	protected function set_ssl(&$ch)
 	{
-		$cas_cert = $this->cas_cert;
-		$cas_local = $this->cas_local;
+		$cas_cert = $this->casCert;
+		$cas_local = $this->casLocal;
 
 		if ($cas_cert != FALSE && $cas_local == FALSE)
 		{
@@ -183,8 +186,13 @@ class CasRestController extends Controller
 		}
 	}
 
-
-	public function parse_attributes($xml)
+	/**
+	 * Given the XML response from CAS, parse the XML into an array.
+	 * @param $xml The XML given given from the CAS response
+	 * @return array containing the attributes from the XML
+	 * @throws AuthenticationException if the XML contained an authenticationFailure key.
+	 */
+	public function parseAttributes($xml)
 	{
 		$serviceResponse = new \SimpleXMLElement($xml, 0, FALSE, 'cas', TRUE);
 		$attributes = (array)$serviceResponse->authenticationSuccess->attributes;
@@ -204,27 +212,28 @@ class CasRestController extends Controller
 
 	/**
 	 * Given a username and password, this method returns a boolean of whether or not the user is authenticated.
-	 * If an error occurs, the message is stored in the $error_message of the CAS object.  
+	 * If the attributes are required, they can optionally be requested in the return attributes parameter.
+	 * If an error occurs, the message is stored in the $error_message of the CAS object.
 	 * @param $cas_username CAS username to authenticate with
 	 * @param $cas_password CAS password to authenticate with
-	 * @param $attributes Change to TRUE to return attributes array instead of boolean. Default FALSE.
-	 
+	 * @param bool $return_attributes Change to TRUE to return attributes array instead of boolean. Default FALSE.
+	 * @return array|bool array of attributes if $return_attributes was set to TRUE, otherwise bool based on authentication success.
 	 */
 	public function authenticate($cas_username, $cas_password, $return_attributes = FALSE)
 	{
 		try
 		{	
-		    $tgt = $this->request_tgt($cas_username, $cas_password);
+		    $tgt = $this->requestTGT($cas_username, $cas_password);
 		    $st = $this->request_st($tgt);
-		    $xml = $this->request_xml($st);
+		    $xml = $this->requestXML($st);
 
-		    $attributes = $this->parse_attributes($xml);
+		    $attributes = $this->parseAttributes($xml);
 
 		}
 		catch(AuthenticationException $e)
 		{
 			//Possibly return error message to help debug.
-			$this->error_message = $e->getMessage();
+			$this->errorMessage = $e->getMessage();
 			return FALSE;
 		}
 
@@ -247,47 +256,45 @@ class CasRestController extends Controller
 
 	/**
 	 * Gets the service URL that's being passed to CAS.
-	 * @return The service URL. Reads cas_local_service from settings.php
+	 * @return The service URL. If $cas_local is set, will return that override instead.
 	 */
-	public function get_service_url()
+	public function getServiceUrl()
 	{
-		if($this->cas_local != FALSE)
-			return $this->cas_local;
+		if($this->casLocal != FALSE)
+			return $this->casLocal;
 		else
-			return $this->service_url;
+			return $this->serviceUrl;
 	}
 
 	/**
-	 * Get's the CAS REST URL, throws an exception if it's not properly set.
-	 * @throws Exception
-	 * @return The
+	 * Returns the cas rest url.
 	 */
-	public function get_cas_rest_url()
+	public function getCASRestUrl()
 	{
-		return $this->cas_rest_url;
+		return $this->casRestUrl;
 	}
 
 
 	/**
-	 * Gets the CAS SERVICE URL from settings.php
-	 * @throws Exception if service_url is not defined in settings.php
-	 * @return The service URL
+	 * Gets the CAS SERVICE URL
+	 * @return string service URL
 	 */
-	public function get_cas_service_url()
+	public function getCASServiceUrl()
 	{
-		return $this->cas_service_url;
+		return $this->casServiceUrl;
 	}
 
 	/**
 	 * Determine the source of the user from the attributes returend by CAS authentication.
-	 * @param attributes is the attributes returned by authenticate.
+	 * @param array $attributes attributes array passed on
 	 * @return mixed FALSE if source can not be determined, string 'LDS' if source LDS, 'AD' if source is 'AD'
 	 */
 	public function determine_source($attributes)
 	{
-
-	  $lds_position = stripos($attributes['DN'], $this->source_dn);
-	  $ad_position = stripos($attributes['DN'], $this->base_dn);
+		if(!is_array($attributes))
+			return FALSE;
+	  $lds_position = stripos($attributes['DN'], $this->sourceDN);
+	  $ad_position = stripos($attributes['DN'], $this->baseDN);
 
 	  //This checks through the return value of the attributes, and determines where the source is.
 	  //Strict operators are required because position can be 0, which can be considered false by ==
