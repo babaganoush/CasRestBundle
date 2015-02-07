@@ -4,6 +4,13 @@ parameters:
      
      main.cas.rest.user.authentication.failure.class: Main\CasRestBundle\Component\Authentication\Handler\AuthenticationFailureHandler
      main.cas.rest.user.management.controller.class: Main\CasRestBundle\Controller\UserManagementController
+
+     cas_rest_url: 'https://sso.yourserver.com/cas/restapi/tickets'
+     cas_service_url: 'https://sso.yourserver.com/cas/serviceValidate'
+     cas_cert: /var/www/certs/ca.crt
+     app_url: 'https://wwwdev.yourserver.com'
+     service_url: 'https://wwwdev.yourserver.com'
+     cas_local: 'https://wwwdev.yourserver.com'
      
      
 
@@ -16,12 +23,10 @@ services:
      main.cas.rest.service:
        class: %main.cas.rest.service.class%
        arguments: [%cas_rest_url%, %cas_service_url%, %cas_cert%, %cas_local%, %source_dn%, %base_dn%, %service_url%]
-       
-       
-       
+
      main.cas.rest.user.management.controller.service:
        class: %main.cas.rest.user.management.controller.class%
-       arguments: ["@fos_user.user_manager", "@security.encoder_factory", "@security.context", %fos_user_firewall_name%]
+       arguments: ["@fos_user.user_manager", "@security.encoder_factory", "@security.context", %fos_user.firewall_name%]
  
      main.cas.rest.user.authentication.failure.service:
        class: %main.cas.rest.user.authentication.failure.class%
